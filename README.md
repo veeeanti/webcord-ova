@@ -10,7 +10,7 @@ A Discord client with a retro terminal aesthetic, built with Cordova for Android
 - Channel list with message viewing
 - Bot token and user token* support
 
-  * __USING YOUR USER TOKEN WILL LIKELY RESULT IN A BAN.__
+  -* __USING YOUR USER TOKEN WILL LIKELY RESULT IN A BAN.__
 
 ## Prerequisites
 
