@@ -1,4 +1,4 @@
-# Webcord Android
+# Webcordova \\ Webcord Android
 
 A Discord client with a retro terminal aesthetic, built with Cordova for Android.
 
