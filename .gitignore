@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Cordova
+/platforms/
+/plugins/
+*.apk
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Archives
+*.zip
+*.tar.gz
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local

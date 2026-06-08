@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://discordclient.vee-anti.xyz">
+<title>WEBCORD OLDDROID</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+body{
+  background:#000;color:#00ff00;
+  font-family:"Share Tech Mono","Courier New",monospace;
+  text-shadow:0 0 5px rgba(0,255,0,0.5);
+  -webkit-font-smoothing:antialiased
+}
+body::after{
+  content:"";position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,rgba(0,255,100,0.025) 0px,rgba(0,255,100,0.025) 1px,transparent 1px,transparent 3px);
+  pointer-events:none;z-index:100
+}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:#001a00}
+::-webkit-scrollbar-thumb{background:#00ff00;border-radius:2px}
+
+/* BOOT SCREEN */
+#bootScreen{
+  position:fixed;inset:0;z-index:200;
+  background:#000;display:flex;
+  flex-direction:column;align-items:center;
+  justify-content:center;padding:20px;
+  transition:opacity .6s ease,visibility .6s ease
+}
+#bootScreen.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.boot-title{
+  font-size:clamp(32px,10vw,72px);font-weight:700;
+  letter-spacing:clamp(8px,2vw,20px);margin-bottom:4px;
+  color:#00ff00;text-shadow:0 0 20px rgba(0,255,0,0.6),0 0 40px rgba(0,255,0,0.3)
+}
+.boot-sub{
+  font-size:clamp(10px,2.5vw,14px);letter-spacing:6px;
+  color:#008800;margin-bottom:clamp(24px,6vw,48px)
+}
+.boot-log{width:min(400px,90vw);margin-bottom:12px}
+.boot-line{
+  font-size:clamp(10px,2.5vw,13px);color:#005500;height:1.4em;
+  white-space:nowrap;overflow:hidden
+}
+.boot-line.active{color:#00cc00;animation:typing .3s steps(40) forwards}
+.boot-line.done{color:#00ff00}
+.boot-line.done::before{content:"> ";color:#008800}
+@keyframes typing{from{width:0}to{width:100%}}
+
+.boot-bar-track{
+  width:min(400px,90vw);height:3px;
+  background:#002200;position:relative;overflow:hidden;
+  margin-top:4px
+}
+.boot-bar-fill{
+  height:100%;width:0%;
+  background:linear-gradient(90deg,#00ff00,#00ffff);
+  box-shadow:0 0 12px rgba(0,255,0,0.5);
+  transition:width .15s linear
+}
+.boot-pct{
+  font-size:clamp(10px,2.5vw,13px);color:#005500;
+  text-align:right;width:min(400px,90vw);margin-top:4px
+}
+.boot-pct span{color:#00ff00}
+.boot-status{
+  font-size:clamp(10px,2.5vw,12px);color:#005500;
+  margin-top:clamp(16px,4vw,32px);letter-spacing:2px;height:1.2em
+}
+.boot-status.active{color:#00ff00;animation:blink 1s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* MAIN APP */
+.container{display:flex;height:100vh;position:relative}
+
+/* SIDEBAR */
+.sidebar{
+  position:fixed;left:0;top:0;bottom:0;width:280px;
+  background:#050d05;display:flex;flex-direction:column;
+  border-right:1px solid rgba(0,255,100,0.3);overflow-y:auto;
+  box-shadow:inset -5px 0 15px rgba(0,255,100,0.05);
+  z-index:40;transform:translateX(0);
+  transition:transform .3s cubic-bezier(.25,.46,.45,.94);
+  -webkit-overflow-scrolling:touch
+}
+.sidebar.collapsed{transform:translateX(-100%)}
+
+.sidebar-toggle{
+  position:fixed;top:8px;left:8px;z-index:55;
+  width:44px;height:44px;padding:0;font-size:20px;
+  background:rgba(0,20,0,.9);border:1px solid rgba(0,255,100,.3);
+  color:#00ff00;cursor:pointer;transition:all .3s;
+  border-radius:0;display:flex;align-items:center;justify-content:center
+}
+.sidebar-toggle:hover{background:rgba(0,255,0,.1);border-color:#00ff00}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:35}
+.sidebar-overlay.show{display:block}
+
+/* CHAT AREA */
+.chat{
+  flex:1;display:flex;flex-direction:column;background:#000;
+  margin-left:280px;transition:margin-left .3s cubic-bezier(.25,.46,.45,.94);
+  min-height:0
+}
+.chat.expanded{margin-left:0}
+
+section{padding:12px 10px;border-bottom:1px solid rgba(0,255,100,.12)}
+section h3{font-size:10px;margin-bottom:10px;color:#008800;letter-spacing:3px}
+.hidden{display:none!important}
+
+input,select{
+  width:100%;padding:12px;margin-bottom:10px;
+  background:#0a1a0a;border:1px solid rgba(0,255,100,.25);
+  color:#00ff00;font-family:inherit;font-size:16px;border-radius:0
+}
+input:focus,select:focus{outline:none;border-color:#00ff00;box-shadow:0 0 8px rgba(0,255,0,.3)}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2300ff00'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+
+button{
+  padding:14px 20px;background:transparent;color:#00ff00;
+  border:1px solid #00ff00;cursor:pointer;font-family:inherit;
+  font-size:14px;text-transform:uppercase;letter-spacing:2px;
+  transition:all .2s;box-shadow:0 0 5px rgba(0,255,0,.2);border-radius:0;
+  min-height:48px;display:flex;align-items:center;justify-content:center
+}
+button:hover{background:rgba(0,255,0,.1);box-shadow:0 0 15px rgba(0,255,0,.4)}
+button:active{background:rgba(0,255,0,.2)}
+button:disabled{opacity:.4;cursor:not-allowed}
+#connectBtn,#sendBtn{width:100%}
+
+.list{display:flex;flex-direction:column;gap:2px}
+.list-item{
+  padding:12px 10px;background:rgba(0,255,0,.02);
+  border:1px solid rgba(0,255,100,.12);cursor:pointer;
+  font-size:14px;transition:all .2s;min-height:44px;display:flex;align-items:center
+}
+.list-item:hover{background:rgba(0,255,0,.06);border-color:rgba(0,255,100,.3)}
+.list-item:active{background:rgba(0,255,0,.12)}
+.list-item.selected{background:rgba(0,255,0,.12);border-color:#00ff00;box-shadow:0 0 8px rgba(0,255,0,.15)}
+
+/* MESSAGES */
+.messages{
+  flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:4px;
+  -webkit-overflow-scrolling:touch;min-height:0
+}
+.message{
+  display:flex;flex-direction:column;gap:2px;padding:8px 10px;
+  background:rgba(0,255,0,.02);border-left:2px solid rgba(0,255,100,.15)
+}
+.message-author{font-weight:700;color:#00aa00;font-size:12px}
+.message-content{color:#00ff00;word-wrap:break-word;font-size:15px;line-height:1.4}
+
+/* INPUT */
+.input-section{
+  display:flex;padding:8px 10px;gap:8px;
+  border-top:1px solid rgba(0,255,100,.12);background:#000;
+  padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))
+}
+#messageInput{
+  flex:1;padding:14px 12px;background:#0a1a0a;border:1px solid rgba(0,255,100,.25);
+  color:#00ff00;font-family:inherit;font-size:16px;line-height:1.5;min-width:0;
+  border-radius:0
+}
+#messageInput:focus{outline:none;border-color:#00ff00;box-shadow:0 0 8px rgba(0,255,0,.3)}
+#sendBtn{
+  padding:14px 18px;flex:0 0 auto;width:auto;min-width:100px;
+  font-size:14px
+}
+
+.status{font-size:11px;color:#005500;padding:8px 10px;text-align:center;letter-spacing:1px}
+.status.error{color:#ff4444;text-shadow:0 0 5px rgba(255,0,0,.5)}
+.warning{font-size:11px;color:#aaaa00;margin-bottom:10px;padding:10px;background:#0a0a00;border:1px solid rgba(170,170,0,.4);line-height:1.4;text-shadow:none}
+
+.disconnect-btn{border-color:#ff4444;color:#ff4444;font-size:12px;padding:6px 12px;min-height:auto}
+.disconnect-btn:hover{background:rgba(255,0,0,.1)}
+
+/* RESPONSIVE */
+@media(max-width:640px){
+  .chat{margin-left:0}
+  .sidebar{width:100%;max-width:320px}
+  .sidebar-toggle{top:4px;left:4px;width:40px;height:40px;font-size:18px}
+  .input-section{padding:6px 8px;gap:6px}
+  #messageInput{padding:12px 10px;font-size:16px}
+  #sendBtn{padding:12px 14px;min-width:80px;font-size:13px}
+  .list-item{padding:14px 10px;font-size:15px;min-height:48px}
+  section{padding:10px 8px}
+  input,select{padding:14px 10px;font-size:16px}
+  button{padding:14px 16px;font-size:15px}
+}
+@media(min-width:641px){
+  .sidebar-toggle{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- BOOT SCREEN -->
+<div id="bootScreen">
+  <div class="boot-title">ALTIMIT OS</div>
+  <div class="boot-sub">// SYSTEM BOOT //</div>
+  <div class="boot-log" id="bootLog"></div>
+  <div class="boot-bar-track"><div class="boot-bar-fill" id="bootBar"></div></div>
+  <div class="boot-pct" id="bootPct">0<span>%</span></div>
+  <div class="boot-status" id="bootStatus">INITIALIZING...</div>
+</div>
+
+<!-- APP -->
+<div class="container">
+  <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-inner">
+      <section id="loginSection">
+        <h3 style="text-align:center;letter-spacing:6px;font-size:16px;color:#00ff00">LOGIN</h3>
+        <select id="authTypeSelect">
+          <option value="bot">Bot Token</option>
+          <option value="user">User Token (ToS risk)</option>
+        </select>
+        <div id="userTokenWarning" class="warning hidden">
+          Using a user token violates Discord ToS and can get your account banned.
+        </div>
+        <input type="password" id="tokenInput" placeholder="Enter token..." autocomplete="off">
+        <button id="connectBtn">CONNECT</button>
+      </section>
+
+      <section id="connectedSection" class="hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span id="connectedUser" style="font-size:12px"></span>
+          <button class="disconnect-btn" id="disconnectBtn">X</button>
+        </div>
+      </section>
+
+      <section id="dmsSection" class="hidden">
+        <h3>// DIRECT MESSAGES</h3>
+        <div class="list" id="dmsList"></div>
+      </section>
+
+      <section id="guildsSection" class="hidden">
+        <h3>// SERVERS</h3>
+        <div class="list" id="guildsList"></div>
+      </section>
+
+      <section id="channelsSection" class="hidden">
+        <h3>// CHANNELS</h3>
+        <div class="list" id="channelsList"></div>
+      </section>
+    </div>
+  </div>
+
+  <div class="chat" id="chat">
+    <div class="status" id="status">Awaiting connection...</div>
+    <div class="messages" id="messages"></div>
+    <div class="input-section hidden" id="inputSection">
+      <input type="text" id="messageInput" placeholder="> type message..." autocomplete="off">
+      <button id="sendBtn">SEND</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_BASE = 'https://discordclient.vee-anti.xyz/api';
+let token = '';
+let authType = 'bot';
+let ready = false;
+let user = null;
+let guilds = new Map();
+let dmChannels = [];
+let currentChannelId = null;
+let lastMessageId = null;
+let pollTimer = null;
+let sidebarOpen = window.innerWidth > 640;
+
+const $ = id => document.getElementById(id);
+
+// --- BOOT ANIMATION ---
+function runBoot() {
+  const lines = [
+    "LOADING KERNEL...",
+    "INITIALIZING MEMORY...",
+    "MOUNTING FILESYSTEM...",
+    "STARTING NETWORK SERVICES...",
+    "LOADING SECURITY MODULES...",
+    "INITIALIZING DISPLAY...",
+    "STARTING USER INTERFACE...",
+    "SYSTEM READY"
+  ];
+  const logEl = $('bootLog');
+  const barEl = $('bootBar');
+  const pctEl = $('bootPct');
+  const statusEl = $('bootStatus');
+  let lineIdx = 0;
+  let progress = 0;
+
+  function addLine(text) {
+    const el = document.createElement('div');
+    el.className = 'boot-line';
+    el.textContent = text;
+    logEl.appendChild(el);
+    requestAnimationFrame(() => { el.classList.add('done'); });
+  }
+
+  function tick() {
+    if (lineIdx < lines.length && progress >= lineIdx * 12.5) {
+      addLine(lines[lineIdx]);
+      lineIdx++;
+    }
+    if (progress < 100) {
+      progress += Math.random() * 3 + 1;
+      if (progress > 100) progress = 100;
+      barEl.style.width = progress + '%';
+      pctEl.innerHTML = Math.floor(progress) + '<span>%</span>';
+      statusEl.textContent = lines[Math.min(lineIdx, lines.length - 1)];
+      if (progress < 100) {
+        setTimeout(tick, 60 + Math.random() * 40);
+      } else {
+        barEl.style.width = '100%';
+        pctEl.innerHTML = '100<span>%</span>';
+        statusEl.textContent = 'CONNECTION ESTABLISHED';
+        statusEl.classList.add('active');
+        setTimeout(() => {
+          $('bootScreen').classList.add('hidden');
+        }, 1200);
+      }
+    } else {
+      setTimeout(tick, 60);
+    }
+  }
+  tick();
+}
+runBoot();
+
+// --- DISCORD CLIENT ---
+const saved = localStorage.getItem('discord_token');
+if (saved) $('tokenInput').value = saved;
+
+async function api(endpoint, method = 'GET', body = null) {
+  const opts = {method, headers:{Authorization: token, 'Content-Type':'application/json'}};
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(API_BASE + endpoint, opts);
+  if (!res.ok) { const t = await res.text(); throw new Error('API ' + res.status + ': ' + t.slice(0,200)); }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+async function connect() {
+  token = $('tokenInput').value.trim();
+  authType = $('authTypeSelect').value;
+  if (!token) { alert('Enter a token'); return; }
+  try {
+    user = await api('/users/@me');
+    ready = true;
+    localStorage.setItem('discord_token', token);
+    const tag = (authType === 'user' && user.discriminator && user.discriminator !== '0')
+      ? user.username + '#' + user.discriminator : user.username;
+    $('connectedUser').textContent = '> ' + tag + ' _';
+    $('loginSection').classList.add('hidden');
+    $('connectedSection').classList.remove('hidden');
+    $('dmsSection').classList.remove('hidden');
+    $('guildsSection').classList.remove('hidden');
+    $('channelsSection').classList.remove('hidden');
+    $('inputSection').classList.remove('hidden');
+    $('status').textContent = 'Connected';
+    $('status').className = 'status';
+    loadGuilds();
+    loadDMs();
+  } catch (err) {
+    $('status').textContent = 'Error: ' + err.message;
+    $('status').className = 'status error';
+  }
+}
+
+function disconnect() {
+  stopPolling();
+  token = ''; ready = false; user = null; guilds.clear(); dmChannels = [];
+  currentChannelId = null; lastMessageId = null;
+  localStorage.removeItem('discord_token');
+  $('loginSection').classList.remove('hidden');
+  $('connectedSection').classList.add('hidden');
+  $('dmsSection').classList.add('hidden');
+  $('guildsSection').classList.add('hidden');
+  $('channelsSection').classList.add('hidden');
+  $('inputSection').classList.add('hidden');
+  $('tokenInput').value = '';
+  $('guildsList').innerHTML = '';
+  $('dmsList').innerHTML = '';
+  $('channelsList').innerHTML = '';
+  $('messages').innerHTML = '';
+  $('status').textContent = 'Disconnected';
+  $('status').className = 'status';
+}
+
+async function loadGuilds() {
+  try {
+    const gs = await api('/users/@me/guilds');
+    guilds = new Map(gs.map(g => [g.id, g]));
+    $('guildsList').innerHTML = '';
+    gs.forEach(g => {
+      const el = document.createElement('div');
+      el.className = 'list-item'; el.textContent = g.name;
+      el.onclick = () => loadChannels(g.id, el);
+      $('guildsList').appendChild(el);
+    });
+  } catch(e) { console.error('guilds err', e); }
+}
+
+async function loadDMs() {
+  try {
+    const chs = await api('/users/@me/channels');
+    dmChannels = chs.filter(ch => ch.type === 1 || ch.type === 3);
+    $('dmsList').innerHTML = '';
+    dmChannels.forEach(ch => {
+      const el = document.createElement('div');
+      el.className = 'list-item';
+      el.textContent = '@ ' + (ch.type === 3
+        ? (ch.name || (ch.recipients||[]).map(r => r.username).join(', '))
+        : (ch.recipients?.[0]?.username || 'Unknown'));
+      el.onclick = () => selectChannel(ch.id, el);
+      $('dmsList').appendChild(el);
+    });
+  } catch(e) { console.error('dms err', e); }
+}
+
+async function loadChannels(guildId, item) {
+  document.querySelectorAll('.list-item').forEach(el => el.classList.remove('selected'));
+  item.classList.add('selected');
+  try {
+    const chs = await api('/guilds/' + guildId + '/channels');
+    $('channelsSection').classList.remove('hidden');
+    $('channelsList').innerHTML = '';
+    chs.filter(ch => ch.type === 0 || ch.type === 5 || ch.type === 15).forEach(ch => {
+      const el = document.createElement('div');
+      el.className = 'list-item'; el.textContent = '# ' + ch.name;
+      el.onclick = () => selectChannel(ch.id, el);
+      $('channelsList').appendChild(el);
+    });
+  } catch(e) { console.error('channels err', e); }
+}
+
+function selectChannel(channelId, item) {
+  if (currentChannelId === channelId) return;
+  stopPolling();
+  currentChannelId = channelId; lastMessageId = null;
+  $('messages').innerHTML = '';
+  $('inputSection').classList.remove('hidden');
+  document.querySelectorAll('.list-item').forEach(el => el.classList.remove('selected'));
+  item.classList.add('selected');
+  loadMessages(channelId);
+}
+
+async function loadMessages(channelId) {
+  try {
+    const msgs = await api('/channels/' + channelId + '/messages?limit=50');
+    lastMessageId = msgs.length > 0 ? msgs[0].id : null;
+    msgs.reverse().forEach(m => addMessage(m.author.username, m.content));
+    startPolling(channelId, lastMessageId);
+  } catch(e) { console.error('load err', e); }
+}
+
+function startPolling(channelId, afterId) {
+  stopPolling();
+  pollTimer = setInterval(async () => {
+    try {
+      const qs = afterId ? '?after=' + afterId + '&limit=10' : '?limit=10';
+      const msgs = await api('/channels/' + channelId + '/messages' + qs);
+      if (msgs && msgs.length > 0) {
+        afterId = msgs[0].id;
+        msgs.reverse().forEach(m => addMessage(m.author.username, m.content));
+      }
+    } catch(e) {}
+  }, 3000);
+}
+
+function stopPolling() {
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+}
+
+function addMessage(author, content) {
+  const d = document.createElement('div'); d.className = 'message';
+  d.innerHTML = '<div class="message-author">' + esc(author) + '</div><div class="message-content">' + esc(content) + '</div>';
+  $('messages').appendChild(d);
+  $('messages').scrollTop = $('messages').scrollHeight;
+}
+
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function sendMessage() {
+  const text = $('messageInput').value.trim();
+  if (!text || !currentChannelId) return;
+  try {
+    await api('/channels/' + currentChannelId + '/messages', 'POST', {content: text});
+    $('messageInput').value = '';
+  } catch(e) { alert('Send error: ' + e.message); }
+}
+
+$('connectBtn').onclick = connect;
+$('disconnectBtn').onclick = disconnect;
+$('sendBtn').onclick = sendMessage;
+$('messageInput').onkeypress = e => { if (e.key === 'Enter') sendMessage(); };
+$('authTypeSelect').onchange = () => {
+  $('userTokenWarning').classList.toggle('hidden', $('authTypeSelect').value !== 'user');
+};
+
+function toggleSidebar() {
+  sidebarOpen = !sidebarOpen;
+  $('sidebar').classList.toggle('collapsed');
+  $('chat').classList.toggle('expanded');
+  $('sidebarToggle').textContent = sidebarOpen ? '☰' : '✕';
+  $('sidebarOverlay').classList.remove('show');
+}
+$('sidebarToggle').onclick = toggleSidebar;
+$('sidebarOverlay').onclick = toggleSidebar;
+</script>
+</body>
+</html>

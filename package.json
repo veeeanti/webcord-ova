@@ -1,0 +1,25 @@
+{
+  "name": "com.discord.client.altimit",
+  "displayName": "Webcord Android",
+  "version": "1.0.0",
+  "description": "Discord client with terminal aesthetic",
+  "main": "index.js",
+  "scripts": {
+    "add-android": "cordova platform add android",
+    "build": "cordova build android",
+    "emulate": "cordova run android"
+  },
+  "keywords": [
+    "ecosystem:cordova"
+  ],
+  "author": "",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "cordova-android": "^15.0.0"
+  },
+  "cordova": {
+    "platforms": [
+      "android"
+    ]
+  }
+}
