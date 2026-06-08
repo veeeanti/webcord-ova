@@ -40,4 +40,4 @@ npm run emulate        # Run on emulator
 
 ## License
 
-Apache-2.0
+~~Apache-2.0~~ oops, I forgot to set it when making the repo, so I guess no license. my fault, gangalangs.
